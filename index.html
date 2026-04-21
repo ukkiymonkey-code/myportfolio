@@ -7,7 +7,32 @@
         :root { --primary: #6366f1; --bg: #f8fafc; --timer-bg: #1e293b; --done-bg: #e2e8f0; }
         body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: #1e293b; }
         .container { width: 100%; max-width: 500px; text-align: center; }
-        #quote { font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 20px; min-height: 3em; line-height: 1.4; padding: 0 10px; }
+        
+        /* 名言エリアの調整 */
+        #quote { 
+            font-size: 0.9rem; 
+            color: #64748b; 
+            font-style: italic; 
+            margin-bottom: 25px; 
+            min-height: 4.5em; 
+            line-height: 1.6; 
+            padding: 0 15px;
+            /* 変な改行を防ぐ設定 */
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #quote span.author {
+            display: block;
+            margin-top: 8px;
+            font-weight: bold;
+            font-style: normal;
+            font-size: 0.8rem;
+        }
+
         .timer-card { background: var(--timer-bg); color: white; padding: 30px; border-radius: 24px; position: relative; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
         .timer-svg { width: 160px; height: 160px; transform: rotate(-90deg); }
         circle { fill: none; stroke-width: 10; stroke-linecap: round; }
@@ -21,9 +46,11 @@
         .timer-display { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; font-family: monospace; }
         .controls { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
         .controls button { padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer; background: rgba(255,255,255,0.2); color: white; font-weight: bold; }
+        
         .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
         input[type="text"] { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; }
         .add-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        
         h2 { font-size: 0.9rem; color: #64748b; text-align: left; border-left: 4px solid var(--primary); padding-left: 8px; margin: 20px 0 10px; }
         ul { list-style: none; padding: 0; }
         .todo-item { background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: left; }
@@ -56,27 +83,29 @@
 </div>
 
 <script>
+    // --- 1. 名言ランダム表示（改行対応版） ---
     const wisdoms = [
-        "「私は失敗したことがない。ただ、1万通りの『うまく行かない方法』を見つけただけだ」トーマス・エジソン",
-        "「空想は知識より重要である。知識には限界があるが、空想は世界を包み込む」アルベルト・アインシュタイン",
-        "「現状維持は退歩の始まり。常に挑戦し続けなければならない」ウォルト・ディズニー",
-        "「クレイジーな人たちがいる。……彼らは物事を変える。彼らは人類を前進させる」スティーブ・ジョブズ",
-        "「成功とは、情熱を失わずに失敗を繰り返す能力のことだ」ウィンストン・チャーチル"
+        { q: "「私は失敗したことがない。ただ、1万通りの『うまく行かない方法』を見つけただけだ」", a: "トーマス・エジソン" },
+        { q: "「空想は知識より重要である。知識には限界があるが、空想は世界を包み込む」", a: "アルベルト・アインシュタイン" },
+        { q: "「現状維持は退歩の始まり。常に挑戦し続けなければならない」", a: "ウォルト・ディズニー" },
+        { q: "「クレイジーな人たちがいる。……彼らは物事を変える。彼らは人類を前進させる」", a: "スティーブ・ジョブズ" },
+        { q: "「成功とは、情熱を失わずに失敗を繰り返す能力のことだ」", a: "ウィンストン・チャーチル" }
     ];
-    document.getElementById('quote').innerText = wisdoms[Math.floor(Math.random() * wisdoms.length)];
+    const picked = wisdoms[Math.floor(Math.random() * wisdoms.length)];
+    document.getElementById('quote').innerHTML = `${picked.q}<span class="author">${picked.a}</span>`;
 
+    // --- 2. タイマー（時計回り版） ---
     const SET_TIME = 25 * 60;
     let time = SET_TIME;
     let timer = null;
     const circle = document.getElementById('progressCircle');
-    const len = 2 * Math.PI * 75; // 471.2
+    const len = 2 * Math.PI * 75; 
     circle.style.strokeDasharray = len;
 
     function draw() {
         const m = Math.floor(time / 60);
         const s = time % 60;
         document.getElementById('timerDisplay').innerText = `${m}:${s < 10 ? '0'+s : s}`;
-        // 時計回りに減らす計算: 残り時間に合わせて offset を増やす
         circle.style.strokeDashoffset = len * (1 - time / SET_TIME);
     }
 
@@ -86,6 +115,7 @@
     };
     document.getElementById('resetBtn').onclick = () => { clearInterval(timer); timer = null; time = SET_TIME; draw(); document.getElementById('startBtn').innerText = 'START'; };
 
+    // --- 3. タスク管理 ---
     let data = JSON.parse(localStorage.getItem('fstep_v9')) || [];
     function render() {
         const tArea = document.getElementById('todoList');
