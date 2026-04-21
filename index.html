@@ -3,314 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web制作基礎 100問フラッシュカード</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>FocusStep - ADHD向けスケジュール管理</title>
     <style>
-        .perspective-1000 { perspective: 1000px; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .preserve-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        
-        .card-container {
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        :root {
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --accent: #f43f5e;
+            --success: #10b981;
         }
-        
-        .card-face {
-            position: absolute;
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
             width: 100%;
-            height: 100%;
+            max-width: 500px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 { font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        p.subtitle { font-size: 0.9rem; color: #64748b; }
+
+        /* 入力エリア */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            background: var(--card);
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus { border-color: var(--primary); }
+
+        button.add-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* リスト表示 */
+        .todo-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .todo-item {
+            background: var(--card);
+            margin-bottom: 12px;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            animation: slideIn 0.3s ease-out;
+            transition: transform 0.2s;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .todo-item.completed {
+            opacity: 0.6;
+            background: #f1f5f9;
+        }
+
+        .todo-item.completed span {
+            text-decoration: line-through;
+        }
+
+        .todo-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 2px solid var(--primary);
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
-            text-align: center;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        .no-select {
-            user-select: none;
-            -webkit-user-select: none;
+        .checkbox.checked::after {
+            content: '✓';
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.2s;
+        }
+
+        .delete-btn:hover { color: var(--accent); }
+
+        /* ADHDサポート機能: 視覚的タイマー */
+        .focus-mode {
+            background: #1e293b;
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: bold;
+            font-family: monospace;
+            margin: 10px 0;
+            color: #38bdf8;
+        }
+
+        .timer-controls button {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        .timer-controls button:hover { background: rgba(255,255,255,0.2); }
+
+        /* フィルタータブ */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            font-size: 0.85rem;
+            color: #64748b;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            font-weight: bold;
         }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+<body>
 
-    <div id="app" class="max-w-md mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="mb-8 text-center">
-            <h1 class="text-2xl font-bold text-indigo-700">Web制作の基礎知識</h1>
-            <p class="text-sm text-slate-500 mt-1">100問フラッシュカード</p>
-        </header>
+<div class="container">
+    <header>
+        <h1>FocusStep</h1>
+        <p class="subtitle">「今、ここ」に集中するタスク管理</p>
+    </header>
 
-        <!-- Progress Bar -->
-        <div class="mb-6">
-            <div class="flex justify-between text-xs mb-1">
-                <span id="progress-text">0 / 100</span>
-                <span id="mastered-count">覚えた: 0</span>
-            </div>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div id="progress-bar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
-            </div>
-        </div>
-
-        <!-- Flashcard Area -->
-        <div class="perspective-1000 h-80 mb-8 cursor-pointer no-select" onclick="toggleCard()">
-            <div id="card-inner" class="card-container preserve-3d relative w-full h-full">
-                <!-- Front (Question) -->
-                <div class="card-face backface-hidden bg-white border-2 border-indigo-100">
-                    <div>
-                        <span class="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold mb-4">QUESTION</span>
-                        <p id="question-text" class="text-xl font-medium leading-relaxed"></p>
-                        <p class="text-xs text-slate-400 mt-6 italic">クリックして答えを表示</p>
-                    </div>
-                </div>
-                <!-- Back (Answer) -->
-                <div class="card-face backface-hidden bg-indigo-600 text-white rotate-y-180">
-                    <div>
-                        <span class="inline-block px-3 py-1 bg-white/20 text-white rounded-full text-xs font-bold mb-4">ANSWER</span>
-                        <p id="answer-text" class="text-xl font-bold leading-relaxed"></p>
-                        <p class="text-xs text-white/60 mt-6 italic">クリックして問題に戻る</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <button onclick="markStatus(false)" class="flex flex-col items-center justify-center p-4 bg-rose-50 border-2 border-rose-100 rounded-xl hover:bg-rose-100 transition-colors">
-                <span class="text-2xl mb-1">🤔</span>
-                <span class="text-sm font-bold text-rose-600">まだ</span>
-            </button>
-            <button onclick="markStatus(true)" class="flex flex-col items-center justify-center p-4 bg-emerald-50 border-2 border-emerald-100 rounded-xl hover:bg-emerald-100 transition-colors">
-                <span class="text-2xl mb-1">✅</span>
-                <span class="text-sm font-bold text-emerald-600">覚えた</span>
-            </button>
-        </div>
-
-        <div class="flex justify-between items-center gap-2">
-            <button onclick="prevCard()" class="px-4 py-2 text-slate-500 hover:bg-slate-200 rounded-lg transition-colors">← 前へ</button>
-            <div class="flex gap-2">
-                <button onclick="shuffleCards()" title="シャッフル" class="p-2 text-slate-500 hover:bg-slate-200 rounded-lg transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"></path><path d="M7 12h10"></path><path d="M10 9l-3 3 3 3"></path><path d="M14 15l3-3-3-3"></path></svg>
-                </button>
-                <button id="filter-btn" onclick="toggleFilter()" title="「まだ」のみ表示" class="p-2 text-slate-500 hover:bg-slate-200 rounded-lg transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                </button>
-            </div>
-            <button onclick="nextCard()" class="px-4 py-2 text-indigo-600 font-bold hover:bg-indigo-50 rounded-lg transition-colors">次へ →</button>
-        </div>
-
-        <footer class="mt-12 text-center text-slate-400 text-xs">
-            <p>© 2024 Web Basic Knowledge Flashcards</p>
-        </footer>
+    <div class="tabs">
+        <div class="tab active" onclick="filterTasks('all')">すべて</div>
+        <div class="tab" onclick="filterTasks('active')">未完了</div>
+        <div class="tab" onclick="filterTasks('completed')">完了</div>
     </div>
 
-    <script>
-        const rawData = `HTMLの役割は何ですか？ Webサイトの骨組み（構造）を記述することです。
-CSSの役割は何ですか？ Webサイトの見た目（デザイン）を整えることです。
-JavaScriptの役割は何ですか？ Webサイトに動きや反応を加えることです。
-HTMLで情報の意味や順番を意識して書くことが重要な理由（1つ目）は？ 検索エンジンに見つけてもらいやすくするSEOのためです。
-HTMLで情報の意味を正しく伝えることが重要な理由（2つ目）は？ 操作に制限のある人にも情報を届けるアクセシビリティのためです。
-検索エンジン最適化のことをアルファベット3文字で何と言いますか？ SEOです。
-音声読み上げツールなどで情報の意味が伝わるようにする配慮を何と言いますか？ アクセシビリティです。
-文字の大きさや色、背景などの調整を担当する言語は？ CSSです。
-同じHTMLでも、適用するCSSを変えれば見た目を変えられますか？ はい、変えられます。
-画面サイズに合わせてレイアウトを調整する手法を何と言いますか？ レスポンシブデザインです。
-ボタンを押すとメニューが開く機能は、主にどの言語で作りますか？ JavaScriptです。
-画像のスライド切り替え機能は、主にどの言語で作りますか？ JavaScriptです。
-ユーザーが入力した文字数をその場でカウントする機能はどの言語の役割ですか？ JavaScriptです。
-ブラウザの種類やバージョンによってWebサイトの表示や動作が変わることはありますか？ はい、あります。
-コードを書かずにWebサイトの内容を管理・更新できる仕組みを何と言いますか？ CMS（コンテンツ管理システム）です。
-CMSの代表的な機能は何ですか？ お知らせの更新や画像の差し替えなどをブラウザから簡単に行うことです。
-CMSを導入する大きなメリットは何ですか？ エンジニア以外のメンバーでもタイムリーに情報発信ができるようになることです。
-CMSを設計する際に最も大切にすべき視点は何ですか？ 実際に使う人（更新する人）の目線です。
-Webサイトのファイルを保存し、閲覧時にダウンロードされる場所を何と言いますか？ Webサーバーです。
-ドメイン名（URL）からサーバーの場所（IPアドレス）を特定する仕組みは？ DNS（ドメイン・ネーム・システム）です。
-インターネット上の住所にあたる数字の羅列を何と言いますか？ IPアドレスです。
-「.com」や「.jp」など、IPアドレスと紐付けられた人間が分かりやすい文字列は？ ドメインです。
-ブラウザがサーバーからダウンロードしたファイルを解析して画面に表示することを何と言いますか？ レンダリングです。
-ブラウザ側で実行されるプログラミング言語の総称は？ クライアントサイドの言語です。
-サーバー側で実行されるプログラミング言語の総称は？ サーバーサイドの言語です。
-世界的に有名なブログシステム「WordPress」は何という言語で書かれていますか？ PHPです。
-ユーザーのスクロールやクリックを感知して動くのはどちらの側の言語ですか？ クライアントサイド（JavaScriptなど）です。
-フリーワード検索やカテゴリ絞り込みを処理するのはどちらの側の言語ですか？ サーバーサイドです。
-サーバーサイド言語が最終的に出力するファイル形式は何ですか？ HTMLファイルです。
-コードを書くためにPCにインストールするテキスト編集ソフトを総称して何と言いますか？ エディタです。
-エンジニアに非常に人気があり、多機能なエディタの名前は？ Visual Studio Code（VS Code）です。
-Webサイトに必要なデータを蓄積しておく「箱」のような仕組みを何と言いますか？ データベースです。
-ブログの記事タイトルや投稿日などの情報は通常どこに保存されますか？ データベースです。
-PC内のローカル環境とサーバーを接続し、ファイルを転送する仕組みは？ FTPです。
-FTPを使ってファイルをやり取りするための専用ソフトを何と言いますか？ FTPソフトです。
-世界中のWebサイトを巡回して情報を収集するロボットの名前は？ クローラーです。
-サイト公開後に、クローラーに来てもらうようリクエストすることを何と言いますか？ インデックスリクエストです。
-Googleなどの検索エンジンが順位を決めるための計算式を何と言いますか？ アルゴリズムです。
-サイトを開いて最初に目に入る、スクロール不要な画面範囲を何と言いますか？ ファーストビューです。
-デザインを始める前に作る、要素の配置を決めた設計図を何と言いますか？ ワイヤーフレームです。
-ワイヤーフレームを元に作成される、最終的な完成イメージ図を何と言いますか？ デザインカンプです。
-スマホなど画面幅の狭いデバイス向けのデザインを優先して考える手法は？ モバイルファーストです。
-デザイン全体の一貫性や方向性のことを略して何と言いますか？ トンマナ（トーン＆マナー）です。
-お問い合わせや商品購入など、Webサイトの最終的な目標行動を何と言いますか？ CV（コンバージョン）です。
-アクセスした人のうち、何割が目標を達成したかを示す指標は？ CVR（コンバージョンレート）です。
-「資料請求はこちら」などのユーザーに行動を促すボタンやリンクの要素を何と言いますか？ CTA（コール・トゥ・アクション）です。
-決まった期間内にサイトを訪れた、重複しないユーザーの数を何と言いますか？ UU（ユニークユーザー）です。
-閲覧されたページの合計回数を何と言いますか？ PV（ページビュー）です。
-Googleが提供する、サイト内のユーザー行動を分析するための無料ツールは？ Googleアナリティクスです。
-Googleが提供する、検索結果での表示回数やクリック率を確認するためのツールは？ サーチコンソールです。
-ドメインを「住所」に例えると、サーバーは何に例えられますか？ 家です。
-FTPの正式名称は何ですか？ File Transfer Protocol（ファイル・トランスファー・プロトコル）です。
-FTPの「プロトコル」とはどういう意味ですか？ ルールや決まり事という意味です。
-SEO対策で重要視される項目のうち、中身に関わるものは？ コンテンツの内容です。
-新しいドメインを取得した後、メールを使うために必要な作業は？ サーバー上でのメール設定です。
-Webサーバーからファイルを「ダウンロード」して見ているのは誰ですか？ ユーザー（ブラウザ）です。
-「新宿 美容室」などの言葉で検索することを何と言いますか？ 検索リクエストです。
-Googleの検索結果の順番は常に一定ですか？ いいえ、アルゴリズムによって決められています。
-Web制作の学習において、全体像を把握するメリットは何ですか？ 今自分が何をしているのかを深く理解できることです。
-HTMLで「見出し」を指定するのは何のためですか？ 構造と意味を明確にするためです。
-CSSで「レスポンシブ」に対応する際、何を基準に表示を切り替えますか？ 画面サイズ（幅）です。
-JavaScriptを使うと、Webサイトはどのようになりますか？ 使いやすく、使っていて気持ちいいものになります。
-CMSの管理画面にはどのような機能が用意されていますか？ 入力フォームや文書作成ソフトのような編集画面です。
-Webサイトを公開するために最低限契約が必要な2つのものは？ ドメインとレンタルサーバーです。
-サーバーサイド言語がデータベースに情報を要求することを何と言いますか？ リクエストです。
-データベースが要求された情報をサーバーサイド言語に返すことを何と言いますか？ レスポンス（情報を返す）です。
-SEO対策を自分一人で完璧に行うことは可能ですか？ アルゴリズムが非公開のため、完璧な対策は不可能です。
-ワイヤーフレームを作る目的は何ですか？ 画像の配置や文章の構造をまとめるためです。
-デザインカンプがしっかりできていないとどうなりますか？ ホームページを作っていくことができなくなります。
-パソコンでは押しやすいボタンがスマホで押しづらくなる現象を防ぐ手法は？ レスポンシブデザイン（最適化）です。
-信頼感のあるサイトを作るために必要なデザインの工夫は？ 適切な色、フォント、写真の選定と統一感（トンマナ）です。
-100人が訪問して3人がお問い合わせをした場合、CVRは何％ですか？ 3%です。
-私が同じサイトに5回アクセスした場合、UU（ユニークユーザー）はいくつですか？ 1です。
-私が同じサイトに5回アクセスした場合、PV（ページビュー）はいくつですか？ 5です。
-ドメインがないと、Webサイトはどうなりますか？ アクセスできない状態になります。
-サーバーは電源をどうしておく必要がありますか？ 電源をつけっぱなしにしておく必要があります。
-FTPソフトを使うメリットは何ですか？ サーバーに毎回ログインする手間が省け、アップロードが楽になります。
-Googleアナリティクスを店舗に例えるとどのような役割ですか？ 店内の監視カメラ（行動観察）のような役割です。
-サーチコンソールを店舗に例えるとどのような役割ですか？ 地図アプリや看板の効果を確認する役割です。
-HTMLタグで「リンク」を指定する目的は何ですか？ 別の情報へ繋がっていることを示すためです。
-CSSの調整だけで、サイトの印象をガラリと変えることはできますか？ はい、可能です。
-ユーザーの入力ミスを即座に指摘する機能は、どの言語で実装しますか？ JavaScriptです。
-CMSは専用のソフトをPCに入れる必要がありますか？ いいえ、ブラウザからアクセス可能です。
-更新頻度の高いサイトでCMSを活用する利点は？ 情報発信のスピードと効率が向上することです。
-DNSへの問い合わせの結果、得られるものは何ですか？ IPアドレスです。
-ブラウザ側（クライアントサイド）だけで完結するWebサイトには何が不要ですか？ データベースやサーバーサイド言語です。
-人気の高いエディタを使うメリットは何ですか？ 情報量が多く、わからないことを検索しやすい点です。
-「インデックスされる」とはどういう意味ですか？ 検索エンジンのデータベースに情報が登録されることです。
-クローラーは、あるページから別のページへどうやって移動しますか？ ページ内のリンクをたどって移動します。
-Webデザイナーがエンジニアと円滑に仕事をするために必要なことは？ 基礎的な専門用語をしっかり理解しておくことです。
-HTMLで「意味のある構造」で書くことが、なぜSEOに良いのですか？ 検索エンジンに正しく情報が伝わりやすくなるからです。
-スマホの普及により、近年重要性が増している設計思想は？ モバイルファーストです。
-HTMLは何の略ですか？ HyperText Markup Language
-CSSは何の略ですか？ Cascading Style Sheets
-CMSの具体的なツール名の例は？ WordPressなどが代表的です。
-Webサーバーからファイルを転送するルールを何と言いますか？ FTPです。
-ユーザーが検索結果をクリックしてから表示されるまでの間に、最初に行く場所は？ DNSです。
-Googleアナリティクスで「誰がどのページを何回見たか」を分析できますか？ はい、できます。
-サーチコンソールで「どんなキーワードでサイトがクリックされたか」わかりますか？ はい、わかります。
-Webサイト制作を成功させる鍵の一つは何ですか？ 更新する人のことまで考えた設計の工夫です。`;
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="次にやることを1つだけ書く..." onkeypress="if(event.key==='Enter') addTask()">
+        <button class="add-btn" onclick="addTask()">追加</button>
+    </div>
 
-        // Parse questions
-        let questions = rawData.trim().split('\n').map((line, index) => {
-            const parts = line.split(/[？\?]\s/);
-            return {
-                id: index,
-                q: parts[0] + '？',
-                a: parts[1],
-                mastered: false
-            };
+    <ul id="todoList" class="todo-list">
+        </ul>
+
+    <div class="focus-mode">
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Focus Timer</div>
+        <div id="timer" class="timer-display">25:00</div>
+        <div class="timer-controls">
+            <button onclick="toggleTimer()" id="timerBtn">START</button>
+            <button onclick="resetTimer()">RESET</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tasks = JSON.parse(localStorage.getItem('focusStep_tasks')) || [];
+    let currentFilter = 'all';
+    let timerInterval;
+    let timeLeft = 25 * 60;
+    let isRunning = false;
+
+    // 初期表示
+    renderTasks();
+
+    // タスク追加
+    function addTask() {
+        const input = document.getElementById('taskInput');
+        if (!input.value.trim()) return;
+
+        const newTask = {
+            id: Date.now(),
+            text: input.value,
+            completed: false
+        };
+
+        tasks.unshift(newTask);
+        saveAndRender();
+        input.value = '';
+    }
+
+    // タスク完了切り替え
+    function toggleTask(id) {
+        tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+        saveAndRender();
+    }
+
+    // タスク削除
+    function deleteTask(id) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveAndRender();
+    }
+
+    // フィルタリング
+    function filterTasks(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        renderTasks();
+    }
+
+    // 保存と描画
+    function saveAndRender() {
+        localStorage.setItem('focusStep_tasks', JSON.stringify(tasks));
+        renderTasks();
+    }
+
+    function renderTasks() {
+        const list = document.getElementById('todoList');
+        list.innerHTML = '';
+
+        const filtered = tasks.filter(t => {
+            if (currentFilter === 'active') return !t.completed;
+            if (currentFilter === 'completed') return t.completed;
+            return true;
         });
 
-        let currentList = [...questions];
-        let currentIndex = 0;
-        let isFlipped = false;
-        let isFilterOn = false;
+        filtered.forEach(task => {
+            const li = document.createElement('li');
+            li.className = `todo-item ${task.completed ? 'completed' : ''}`;
+            li.innerHTML = `
+                <div class="todo-content">
+                    <div class="checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
+                    <span>${task.text}</span>
+                </div>
+                <button class="delete-btn" onclick="deleteTask(${task.id})">&times;</button>
+            `;
+            list.appendChild(li);
+        });
+    }
 
-        const cardInner = document.getElementById('card-inner');
-        const qText = document.getElementById('question-text');
-        const aText = document.getElementById('answer-text');
-        const progressText = document.getElementById('progress-text');
-        const masteredCountText = document.getElementById('mastered-count');
-        const progressBar = document.getElementById('progress-bar');
-        const filterBtn = document.getElementById('filter-btn');
+    // タイマー機能
+    function updateTimerDisplay() {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        document.getElementById('timer').textContent = 
+            `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
 
-        function updateCard() {
-            if (currentList.length === 0) {
-                qText.innerText = "表示できるカードがありません";
-                aText.innerText = "";
-                return;
-            }
-            
-            // Reset flip before changing content
-            isFlipped = false;
-            cardInner.classList.remove('rotate-y-180');
-            
-            const item = currentList[currentIndex];
-            qText.innerText = item.q;
-            aText.innerText = item.a;
-            
-            // Update UI
-            progressText.innerText = `${currentIndex + 1} / ${currentList.length}`;
-            const masteredCount = questions.filter(q => q.mastered).length;
-            masteredCountText.innerText = `覚えた: ${masteredCount}`;
-            progressBar.style.width = `${(masteredCount / questions.length) * 100}%`;
+    function toggleTimer() {
+        const btn = document.getElementById('timerBtn');
+        if (isRunning) {
+            clearInterval(timerInterval);
+            btn.textContent = 'START';
+        } else {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('お疲れ様です！少し休憩しましょう。');
+                    resetTimer();
+                }
+            }, 1000);
+            btn.textContent = 'STOP';
         }
+        isRunning = !isRunning;
+    }
 
-        function toggleCard() {
-            if (currentList.length === 0) return;
-            isFlipped = !isFlipped;
-            if (isFlipped) {
-                cardInner.classList.add('rotate-y-180');
-            } else {
-                cardInner.classList.remove('rotate-y-180');
-            }
-        }
+    function resetTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 25 * 60;
+        isRunning = false;
+        updateTimerDisplay();
+        document.getElementById('timerBtn').textContent = 'START';
+    }
+</script>
 
-        function nextCard() {
-            if (currentList.length === 0) return;
-            currentIndex = (currentIndex + 1) % currentList.length;
-            updateCard();
-        }
-
-        function prevCard() {
-            if (currentList.length === 0) return;
-            currentIndex = (currentIndex - 1 + currentList.length) % currentList.length;
-            updateCard();
-        }
-
-        function markStatus(isMastered) {
-            if (currentList.length === 0) return;
-            
-            const originalItem = questions.find(q => q.id === currentList[currentIndex].id);
-            originalItem.mastered = isMastered;
-            
-            // If filtering and we mark as mastered, it will disappear on list refresh
-            // But for now, just go to next
-            nextCard();
-        }
-
-        function shuffleCards() {
-            for (let i = currentList.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [currentList[i], currentList[j]] = [currentList[j], currentList[i]];
-            }
-            currentIndex = 0;
-            updateCard();
-        }
-
-        function toggleFilter() {
-            isFilterOn = !isFilterOn;
-            if (isFilterOn) {
-                currentList = questions.filter(q => !q.mastered);
-                filterBtn.classList.add('bg-indigo-100', 'text-indigo-600');
-            } else {
-                currentList = [...questions];
-                filterBtn.classList.remove('bg-indigo-100', 'text-indigo-600');
-            }
-            currentIndex = 0;
-            updateCard();
-        }
-
-        // Initialize
-        window.onload = updateCard;
-    </script>
 </body>
 </html>
