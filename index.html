@@ -2,97 +2,41 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusStep - タイマー修復完全版</title>
+    <title>FocusStep - Wisdom Edition</title>
     <style>
-        :root {
-            --primary: #6366f1;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #1e293b;
-            --timer-bg: #1e293b;
-            --progress-fill: #10b981;
-            --done-bg: #e2e8f0;
-        }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .container { width: 100%; max-width: 500px; }
-        header { text-align: center; margin-bottom: 20px; }
-        h1 { color: var(--primary); margin: 0; font-weight: 800; }
-        
-        .timer-card {
-            background: var(--timer-bg);
-            color: white;
-            padding: 30px;
-            border-radius: 24px;
-            text-align: center;
-            margin-bottom: 25px;
-            position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        .timer-svg { width: 180px; height: 180px; transform: rotate(-90deg); }
-        .timer-svg circle { fill: none; stroke-width: 10; stroke-linecap: round; }
+        :root { --primary: #6366f1; --bg: #f8fafc; --timer-bg: #1e293b; --done-bg: #e2e8f0; }
+        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: #1e293b; }
+        .container { width: 100%; max-width: 500px; text-align: center; }
+        #quote { font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 20px; min-height: 3em; line-height: 1.4; padding: 0 10px; }
+        .timer-card { background: var(--timer-bg); color: white; padding: 30px; border-radius: 24px; position: relative; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .timer-svg { width: 160px; height: 160px; transform: rotate(-90deg); }
+        circle { fill: none; stroke-width: 10; stroke-linecap: round; }
         .circle-bg { stroke: rgba(255,255,255,0.1); }
-        .circle-progress {
-            stroke: #38bdf8;
-            stroke-dasharray: 502.65; 
-            stroke-dashoffset: 0;
-            transition: stroke-dashoffset 1s linear;
-        }
-
-        .timer-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%); }
-        .timer-display { font-size: 2.2rem; font-weight: bold; font-family: monospace; }
-        .timer-controls { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
-        .timer-controls button {
-            padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer;
-            font-weight: bold; background: rgba(255,255,255,0.2); color: white;
-            min-width: 80px;
-        }
-
+        .circle-progress { stroke: #38bdf8; stroke-dasharray: 502.6; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+        .timer-display { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; font-family: monospace; }
+        .controls { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
+        .controls button { padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer; background: rgba(255,255,255,0.2); color: white; font-weight: bold; }
         .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
         input[type="text"] { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; }
         .add-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        h2 { font-size: 1rem; color: #64748b; margin-top: 20px; border-left: 4px solid var(--primary); padding-left: 10px; }
-        .todo-list { list-style: none; padding: 0; margin: 0; }
-        .todo-item {
-            background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .todo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .meter-container { display: flex; align-items: center; gap: 12px; }
-        input[type="range"] { flex: 1; cursor: pointer; accent-color: var(--progress-fill); }
-        .percent-text { font-size: 0.8rem; font-weight: bold; width: 40px; color: var(--primary); }
-        #doneList .todo-item { background: var(--done-bg); opacity: 0.7; }
-        .delete-btn { color: #cbd5e1; cursor: pointer; border: none; background: none; font-size: 1.5rem; }
+        h2 { font-size: 0.9rem; color: #64748b; text-align: left; border-left: 4px solid var(--primary); padding-left: 8px; margin: 20px 0 10px; }
+        ul { list-style: none; padding: 0; }
+        .todo-item { background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: left; }
+        .item-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
+        input[type="range"] { width: 100%; cursor: pointer; accent-color: #10b981; }
+        #doneList .todo-item { background: var(--done-bg); opacity: 0.6; text-decoration: line-through; }
+        .del-btn { color: #cbd5e1; border: none; background: none; cursor: pointer; font-size: 1.2rem; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <header><h1>FocusStep</h1></header>
+    <h1>FocusStep</h1>
+    <div id="quote"></div>
 
     <div class="timer-card">
-        <svg class="timer-svg">
-            <circle class="circle-bg" cx="90" cy="90" r="80"></circle>
-            <circle id="progressCircle" class="circle-progress" cx="90" cy="90" r="80"></circle>
-        </svg>
-        <div class="timer-content">
-            <div id="timerDisplay" class="timer-display">25:00</div>
-        </div>
-        <div class="timer-controls">
-            <button id="startBtn">START</button>
-            <button id="resetBtn">RESET</button>
-        </div>
+        <svg class="timer-svg"><circle class="circle-bg" cx="80" cy="80" r="75"></circle><circle id="progressCircle" class="circle-progress" cx="80" cy="80" r="75"></circle></svg>
+        <div id="timerDisplay" class="timer-display">25:00</div>
+        <div class="controls"><button id="startBtn">START</button><button id="resetBtn">RESET</button></div>
     </div>
 
     <div class="input-group">
@@ -101,122 +45,71 @@
     </div>
 
     <h2>実行中</h2>
-    <ul id="todoList" class="todo-list"></ul>
+    <ul id="todoList"></ul>
     <h2>完了済み</h2>
-    <ul id="doneList" class="todo-list"></ul>
+    <ul id="doneList"></ul>
 </div>
 
 <script>
-    // --- 状態管理 ---
-    const TOTAL_TIME = 25 * 60;
-    let timeLeft = TOTAL_TIME;
-    let timerInterval = null;
-    const CIRCUMFERENCE = 502.65;
-    
+    // --- 1. 名言ランダム表示 ---
+    const wisdoms = [
+        "「私は失敗したことがない。ただ、1万通りの『うまく行かない方法』を見つけただけだ」トーマス・エジソン",
+        "「空想は知識より重要である。知識には限界があるが、空想は世界を包み込む」アルベルト・アインシュタイン",
+        "「現状維持は退歩の始まり。常に挑戦し続けなければならない」ウォルト・ディズニー",
+        "「クレイジーな人たちがいる。……彼らは物事を変える。彼らは人類を前進させる」スティーブ・ジョブズ",
+        "「成功とは、情熱を失わずに失敗を繰り返す能力のことだ」ウィンストン・チャーチル"
+    ];
+    document.getElementById('quote').innerText = wisdoms[Math.floor(Math.random() * wisdoms.length)];
+
+    // --- 2. タイマー ---
+    let time = 25 * 60;
+    let timer = null;
     const circle = document.getElementById('progressCircle');
-    const timerDisplay = document.getElementById('timerDisplay');
-    const startBtn = document.getElementById('startBtn');
+    const len = 2 * Math.PI * 75;
+    circle.style.strokeDasharray = len;
 
-    circle.style.strokeDasharray = CIRCUMFERENCE;
-    circle.style.strokeDashoffset = 0;
-
-    // --- タイマー機能 ---
-    function updateTimerVisuals() {
-        const mins = Math.floor(timeLeft / 60);
-        const secs = timeLeft % 60;
-        timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        const progress = timeLeft / TOTAL_TIME;
-        const offset = CIRCUMFERENCE * (1 - progress);
-        circle.style.strokeDashoffset = offset;
+    function draw() {
+        const m = Math.floor(time / 60);
+        const s = time % 60;
+        document.getElementById('timerDisplay').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+        circle.style.strokeDashoffset = len * (1 - time / (25 * 60));
     }
 
-    function toggleTimer() {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            startBtn.textContent = 'START';
-        } else {
-            startBtn.textContent = 'STOP';
-            timerInterval = setInterval(() => {
-                if (timeLeft > 0) {
-                    timeLeft--;
-                    updateTimerVisuals();
-                } else {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                    startBtn.textContent = 'START';
-                    alert('ポモドーロ終了！お疲れ様でした。');
-                }
-            }, 1000);
-        }
-    }
+    document.getElementById('startBtn').onclick = function() {
+        if (timer) { clearInterval(timer); timer = null; this.innerText = 'START'; }
+        else { this.innerText = 'STOP'; timer = setInterval(() => { if (time > 0) { time--; draw(); } else { clearInterval(timer); alert('Time up!'); } }, 1000); }
+    };
+    document.getElementById('resetBtn').onclick = () => { clearInterval(timer); timer = null; time = 25 * 60; draw(); document.getElementById('startBtn').innerText = 'START'; };
 
-    function resetTimer() {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        timeLeft = TOTAL_TIME;
-        startBtn.textContent = 'START';
-        updateTimerVisuals();
-    }
-
-    // --- タスク管理機能 ---
-    let tasks = JSON.parse(localStorage.getItem('focus_v_final')) || [];
-
-    function renderTasks() {
-        const todoList = document.getElementById('todoList');
-        const doneList = document.getElementById('doneList');
-        todoList.innerHTML = '';
-        doneList.innerHTML = '';
-
-        tasks.forEach(task => {
+    // --- 3. タスク管理 (ドラッグ式) ---
+    let data = JSON.parse(localStorage.getItem('fstep_v9')) || [];
+    function render() {
+        const tArea = document.getElementById('todoList');
+        const dArea = document.getElementById('doneList');
+        tArea.innerHTML = ''; dArea.innerHTML = '';
+        data.forEach(item => {
             const li = document.createElement('li');
             li.className = 'todo-item';
             li.innerHTML = `
-                <div class="todo-header">
-                    <span class="todo-title">${task.text}</span>
-                    <button class="delete-btn" onclick="deleteTask(${task.id})">&times;</button>
-                </div>
-                <div class="meter-container">
-                    <input type="range" min="0" max="100" value="${task.progress}" 
-                           oninput="updateProgress(${task.id}, this.value)">
-                    <span class="percent-text">${task.progress}%</span>
-                </div>
+                <div class="item-header"><span>${item.txt}</span><button class="del-btn" onclick="del(${item.id})">&times;</button></div>
+                <input type="range" value="${item.p}" onchange="upd(${item.id}, this.value)">
+                <div style="font-size:0.7rem; color:gray; text-align:right;">${item.p}%</div>
             `;
-            if (task.progress >= 100) doneList.appendChild(li);
-            else todoList.appendChild(li);
+            if (item.p >= 100) dArea.appendChild(li); else tArea.appendChild(li);
         });
-        localStorage.setItem('focus_v_final', JSON.stringify(tasks));
+        localStorage.setItem('fstep_v9', JSON.stringify(data));
     }
 
-    window.addTask = function() {
-        const input = document.getElementById('taskInput');
-        if (!input.value.trim()) return;
-        tasks.unshift({ id: Date.now(), text: input.value, progress: 0 });
-        input.value = '';
-        renderTasks();
+    window.upd = (id, val) => { data = data.map(d => d.id === id ? {...d, p: parseInt(val)} : d); render(); };
+    window.del = (id) => { data = data.filter(d => d.id !== id); render(); };
+    document.getElementById('addBtn').onclick = () => {
+        const i = document.getElementById('taskInput');
+        if (!i.value) return;
+        data.unshift({ id: Date.now(), txt: i.value, p: 0 });
+        i.value = ''; render();
     };
 
-    window.updateProgress = function(id, val) {
-        tasks = tasks.map(t => t.id === id ? {...t, progress: parseInt(val)} : t);
-        renderTasks();
-    };
-
-    window.deleteTask = function(id) {
-        tasks = tasks.filter(t => t.id !== id);
-        renderTasks();
-    };
-
-    // --- イベントリスナー ---
-    document.getElementById('startBtn').addEventListener('click', toggleTimer);
-    document.getElementById('resetBtn').addEventListener('click', resetTimer);
-    document.getElementById('addBtn').addEventListener('click', addTask);
-    document.getElementById('taskInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addTask();
-    });
-
-    // 初期化
-    updateTimerVisuals();
-    renderTasks();
+    draw(); render();
 </script>
 </body>
 </html>
