@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusStep - 完了タスク分離版</title>
+    <title>FocusStep - タイマー修復完全版</title>
     <style>
         :root {
             --primary: #6366f1;
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #1e293b;
-            --accent: #f43f5e;
             --timer-bg: #1e293b;
             --progress-fill: #10b981;
             --done-bg: #e2e8f0;
@@ -30,7 +29,6 @@
         header { text-align: center; margin-bottom: 20px; }
         h1 { color: var(--primary); margin: 0; font-weight: 800; }
         
-        /* タイマー */
         .timer-card {
             background: var(--timer-bg);
             color: white;
@@ -47,7 +45,7 @@
         .circle-bg { stroke: rgba(255,255,255,0.1); }
         .circle-progress {
             stroke: #38bdf8;
-            stroke-dasharray: 502.6; 
+            stroke-dasharray: 502.65; 
             stroke-dashoffset: 0;
             transition: stroke-dashoffset 1s linear;
         }
@@ -61,38 +59,27 @@
             min-width: 80px;
         }
 
-        /* 入力エリア */
         .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
         input[type="text"] { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; }
         .add-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; font-weight: bold; }
-
-        /* リスト */
         h2 { font-size: 1rem; color: #64748b; margin-top: 20px; border-left: 4px solid var(--primary); padding-left: 10px; }
         .todo-list { list-style: none; padding: 0; margin: 0; }
         .todo-item {
             background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-
         .todo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .todo-title { font-weight: 600; }
-
         .meter-container { display: flex; align-items: center; gap: 12px; }
         input[type="range"] { flex: 1; cursor: pointer; accent-color: var(--progress-fill); }
         .percent-text { font-size: 0.8rem; font-weight: bold; width: 40px; color: var(--primary); }
-
         #doneList .todo-item { background: var(--done-bg); opacity: 0.7; }
-        #doneList .todo-title { text-decoration: line-through; color: #64748b; }
-        
-        .delete-btn { color: #cbd5e1; cursor: pointer; border: none; background: none; font-size: 1.5rem; line-height: 1; }
+        .delete-btn { color: #cbd5e1; cursor: pointer; border: none; background: none; font-size: 1.5rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>FocusStep</h1>
-    </header>
+    <header><h1>FocusStep</h1></header>
 
     <div class="timer-card">
         <svg class="timer-svg">
@@ -115,7 +102,6 @@
 
     <h2>実行中</h2>
     <ul id="todoList" class="todo-list"></ul>
-
     <h2>完了済み</h2>
     <ul id="doneList" class="todo-list"></ul>
 </div>
@@ -125,24 +111,26 @@
     const TOTAL_TIME = 25 * 60;
     let timeLeft = TOTAL_TIME;
     let timerInterval = null;
-    let tasks = JSON.parse(localStorage.getItem('focus_v5_final')) || [];
-
+    const CIRCUMFERENCE = 502.65;
+    
     const circle = document.getElementById('progressCircle');
     const timerDisplay = document.getElementById('timerDisplay');
-    const CIRCUMFERENCE = 2 * Math.PI * 80;
-    circle.style.strokeDasharray = CIRCUMFERENCE;
+    const startBtn = document.getElementById('startBtn');
 
-    // --- タイマー関数 ---
+    circle.style.strokeDasharray = CIRCUMFERENCE;
+    circle.style.strokeDashoffset = 0;
+
+    // --- タイマー機能 ---
     function updateTimerVisuals() {
         const mins = Math.floor(timeLeft / 60);
         const secs = timeLeft % 60;
         timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        const offset = CIRCUMFERENCE - (timeLeft / TOTAL_TIME) * CIRCUMFERENCE;
+        const progress = timeLeft / TOTAL_TIME;
+        const offset = CIRCUMFERENCE * (1 - progress);
         circle.style.strokeDashoffset = offset;
     }
 
     function toggleTimer() {
-        const startBtn = document.getElementById('startBtn');
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
@@ -157,7 +145,7 @@
                     clearInterval(timerInterval);
                     timerInterval = null;
                     startBtn.textContent = 'START';
-                    alert('お疲れ様です！休息も大切ですよ。');
+                    alert('ポモドーロ終了！お疲れ様でした。');
                 }
             }, 1000);
         }
@@ -167,11 +155,13 @@
         clearInterval(timerInterval);
         timerInterval = null;
         timeLeft = TOTAL_TIME;
-        document.getElementById('startBtn').textContent = 'START';
+        startBtn.textContent = 'START';
         updateTimerVisuals();
     }
 
-    // --- タスク関数 ---
+    // --- タスク管理機能 ---
+    let tasks = JSON.parse(localStorage.getItem('focus_v_final')) || [];
+
     function renderTasks() {
         const todoList = document.getElementById('todoList');
         const doneList = document.getElementById('doneList');
@@ -195,19 +185,17 @@
             if (task.progress >= 100) doneList.appendChild(li);
             else todoList.appendChild(li);
         });
-        localStorage.setItem('focus_v5_final', JSON.stringify(tasks));
+        localStorage.setItem('focus_v_final', JSON.stringify(tasks));
     }
 
-    function addTask() {
+    window.addTask = function() {
         const input = document.getElementById('taskInput');
-        const text = input.value.trim();
-        if (!text) return;
-        tasks.unshift({ id: Date.now(), text: text, progress: 0 });
+        if (!input.value.trim()) return;
+        tasks.unshift({ id: Date.now(), text: input.value, progress: 0 });
         input.value = '';
         renderTasks();
-    }
+    };
 
-    // グローバルに公開
     window.updateProgress = function(id, val) {
         tasks = tasks.map(t => t.id === id ? {...t, progress: parseInt(val)} : t);
         renderTasks();
@@ -218,7 +206,7 @@
         renderTasks();
     };
 
-    // イベントリスナー登録
+    // --- イベントリスナー ---
     document.getElementById('startBtn').addEventListener('click', toggleTimer);
     document.getElementById('resetBtn').addEventListener('click', resetTimer);
     document.getElementById('addBtn').addEventListener('click', addTask);
@@ -226,7 +214,7 @@
         if (e.key === 'Enter') addTask();
     });
 
-    // 初期起動
+    // 初期化
     updateTimerVisuals();
     renderTasks();
 </script>
