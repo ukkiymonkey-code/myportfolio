@@ -30,7 +30,7 @@
         header { text-align: center; margin-bottom: 20px; }
         h1 { color: var(--primary); margin: 0; font-weight: 800; }
         
-        /* --- タイマーセクション --- */
+        /* タイマー */
         .timer-card {
             background: var(--timer-bg);
             color: white;
@@ -47,7 +47,7 @@
         .circle-bg { stroke: rgba(255,255,255,0.1); }
         .circle-progress {
             stroke: #38bdf8;
-            stroke-dasharray: 502.6; /* 2 * PI * 80 */
+            stroke-dasharray: 502.6; 
             stroke-dashoffset: 0;
             transition: stroke-dashoffset 1s linear;
         }
@@ -56,18 +56,19 @@
         .timer-display { font-size: 2.2rem; font-weight: bold; font-family: monospace; }
         .timer-controls { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
         .timer-controls button {
-            padding: 8px 18px; border-radius: 12px; border: none; cursor: pointer;
-            font-weight: bold; background: rgba(255,255,255,0.15); color: white;
+            padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer;
+            font-weight: bold; background: rgba(255,255,255,0.2); color: white;
+            min-width: 80px;
         }
 
-        /* --- 入力エリア --- */
+        /* 入力エリア */
         .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
         input[type="text"] { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; }
         .add-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; font-weight: bold; }
 
-        /* --- タスクリスト --- */
+        /* リスト */
         h2 { font-size: 1rem; color: #64748b; margin-top: 20px; border-left: 4px solid var(--primary); padding-left: 10px; }
-        .todo-list { list-style: none; padding: 0; }
+        .todo-list { list-style: none; padding: 0; margin: 0; }
         .todo-item {
             background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -76,16 +77,14 @@
         .todo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .todo-title { font-weight: 600; }
 
-        /* メーター */
         .meter-container { display: flex; align-items: center; gap: 12px; }
         input[type="range"] { flex: 1; cursor: pointer; accent-color: var(--progress-fill); }
         .percent-text { font-size: 0.8rem; font-weight: bold; width: 40px; color: var(--primary); }
 
-        /* 完了済みリストのスタイル */
         #doneList .todo-item { background: var(--done-bg); opacity: 0.7; }
         #doneList .todo-title { text-decoration: line-through; color: #64748b; }
         
-        .delete-btn { color: #cbd5e1; cursor: pointer; border: none; background: none; font-size: 1.2rem; }
+        .delete-btn { color: #cbd5e1; cursor: pointer; border: none; background: none; font-size: 1.5rem; line-height: 1; }
     </style>
 </head>
 <body>
@@ -104,14 +103,14 @@
             <div id="timerDisplay" class="timer-display">25:00</div>
         </div>
         <div class="timer-controls">
-            <button id="startBtn" onclick="toggleTimer()">START</button>
-            <button onclick="resetTimer()">RESET</button>
+            <button id="startBtn">START</button>
+            <button id="resetBtn">RESET</button>
         </div>
     </div>
 
     <div class="input-group">
-        <input type="text" id="taskInput" placeholder="やることを入力..." onkeypress="if(event.key==='Enter') addTask()">
-        <button class="add-btn" onclick="addTask()">追加</button>
+        <input type="text" id="taskInput" placeholder="やることを入力...">
+        <button class="add-btn" id="addBtn">追加</button>
     </div>
 
     <h2>実行中</h2>
@@ -122,75 +121,16 @@
 </div>
 
 <script>
-    // --- タイマー設定 ---
+    // --- 状態管理 ---
     const TOTAL_TIME = 25 * 60;
     let timeLeft = TOTAL_TIME;
     let timerInterval = null;
-    const CIRCUMFERENCE = 2 * Math.PI * 80;
+    let tasks = JSON.parse(localStorage.getItem('focus_v4_data')) || [];
+
     const circle = document.getElementById('progressCircle');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const CIRCUMFERENCE = 2 * Math.PI * 80;
     circle.style.strokeDasharray = CIRCUMFERENCE;
 
-    function updateTimerVisuals() {
-        const mins = Math.floor(timeLeft / 60);
-        const secs = timeLeft % 60;
-        document.getElementById('timerDisplay').textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        
-        // 円形ゲージの計算（逆回転を防止し、正しく減るように修正）
-        const offset = CIRCUMFERENCE - (timeLeft / TOTAL_TIME) * CIRCUMFERENCE;
-        circle.style.strokeDashoffset = offset;
-    }
-
-    function toggleTimer() {
-        const btn = document.getElementById('startBtn');
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            btn.textContent = 'START';
-        } else {
-            btn.textContent = 'STOP';
-            timerInterval = setInterval(() => {
-                if (timeLeft > 0) {
-                    timeLeft--;
-                    updateTimerVisuals();
-                } else {
-                    clearInterval(timerInterval);
-                    alert('お疲れ様です！');
-                    resetTimer();
-                }
-            }, 1000);
-        }
-    }
-
-    function resetTimer() {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        timeLeft = TOTAL_TIME;
-        document.getElementById('startBtn').textContent = 'START';
-        updateTimerVisuals();
-    }
-
-    // --- タスク管理 ---
-    let tasks = JSON.parse(localStorage.getItem('focus_v3_data')) || [];
-
-    function renderTasks() {
-        const todoList = document.getElementById('todoList');
-        const doneList = document.getElementById('doneList');
-        todoList.innerHTML = '';
-        doneList.innerHTML = '';
-
-        tasks.forEach(task => {
-            const li = document.createElement('li');
-            li.className = 'todo-item';
-            li.innerHTML = `
-                <div class="todo-header">
-                    <span class="todo-title">${task.text}</span>
-                    <button class="delete-btn" onclick="deleteTask(${task.id})">&times;</button>
-                </div>
-                <div class="meter-container">
-                    <input type="range" min="0" max="100" value="${task.progress}" oninput="updateProgress(${task.id}, this.value)">
-                    <span class="percent-text">${task.progress}%</span>
-                </div>
-            `;
-            
-            // 100%なら完了リスト、それ以外なら実行中リストへ
-            if (
+    // --- タイマー関数 ---
+    function updateTimer
