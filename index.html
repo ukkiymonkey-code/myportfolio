@@ -116,4 +116,151 @@
 
         .todo-title { font-weight: 600; font-size: 1rem; color: var(--text); }
         .todo-item.completed { background: #f1f5f9; opacity: 0.7; }
-        .todo-item.completed .todo-title { text-
+        .todo-item.completed .todo-title { text-decoration: line-through; color: #94a3b8; }
+
+        .meter-container {
+            display: flex; align-items: center; gap: 12px;
+        }
+        input[type="range"] {
+            flex: 1; cursor: pointer; accent-color: var(--progress-fill);
+        }
+        .percent-text {
+            font-size: 0.85rem; font-weight: bold; width: 45px; color: var(--primary); text-align: right;
+        }
+
+        .delete-btn { color: #cbd5e1; cursor: pointer; border: none; background: none; font-size: 1.4rem; }
+        .delete-btn:hover { color: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>FocusStep</h1>
+        <p class="subtitle">視覚化でADHDの「時間管理」をサポート</p>
+    </header>
+
+    <div class="timer-card">
+        <svg class="timer-svg">
+            <circle class="circle-bg" cx="90" cy="90" r="80"></circle>
+            <circle id="progressCircle" class="circle-progress" cx="90" cy="90" r="80"></circle>
+        </svg>
+        <div class="timer-content">
+            <div id="timerDisplay" class="timer-display">25:00</div>
+            <div style="font-size: 0.6rem; color: #94a3b8; letter-spacing: 1px;">FOCUS</div>
+        </div>
+        <div class="timer-controls">
+            <button id="startBtn" onclick="toggleTimer()">START</button>
+            <button onclick="resetTimer()">RESET</button>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="次にやることを1つ入力..." onkeypress="if(event.key==='Enter') addTask()">
+        <button class="add-btn" onclick="addTask()">追加</button>
+    </div>
+
+    <ul id="todoList" class="todo-list"></ul>
+</div>
+
+<script>
+    // --- タイマー変数 ---
+    const TOTAL_TIME = 25 * 60;
+    let timeLeft = TOTAL_TIME;
+    let timerInterval = null;
+    const CIRCUMFERENCE = 2 * Math.PI * 80;
+    const circle = document.getElementById('progressCircle');
+    circle.style.strokeDasharray = CIRCUMFERENCE;
+
+    function updateTimerVisuals() {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        document.getElementById('timerDisplay').textContent = 
+            `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        const offset = CIRCUMFERENCE - (timeLeft / TOTAL_TIME) * CIRCUMFERENCE;
+        circle.style.strokeDashoffset = offset;
+    }
+
+    function toggleTimer() {
+        const btn = document.getElementById('startBtn');
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            btn.textContent = 'START';
+        } else {
+            btn.textContent = 'STOP';
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerVisuals();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    alert('お疲れ様です！休憩しましょう。');
+                    resetTimer();
+                }
+            }, 1000);
+        }
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timeLeft = TOTAL_TIME;
+        document.getElementById('startBtn').textContent = 'START';
+        updateTimerVisuals();
+    }
+
+    // --- タスク管理変数 ---
+    let tasks = JSON.parse(localStorage.getItem('focus_master_db')) || [];
+
+    function renderTasks() {
+        const list = document.getElementById('todoList');
+        list.innerHTML = '';
+        
+        tasks.forEach(task => {
+            const isDone = task.progress >= 100;
+            const li = document.createElement('li');
+            li.className = `todo-item ${isDone ? 'completed' : ''}`;
+            
+            li.innerHTML = `
+                <div class="todo-header">
+                    <span class="todo-title">${task.text}</span>
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">&times;</button>
+                </div>
+                <div class="meter-container">
+                    <input type="range" min="0" max="100" value="${task.progress}" 
+                           oninput="updateProgress(${task.id}, this.value)">
+                    <span class="percent-text">${task.progress}%</span>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+        localStorage.setItem('focus_master_db', JSON.stringify(tasks));
+    }
+
+    function addTask() {
+        const input = document.getElementById('taskInput');
+        if (!input.value.trim()) return;
+        tasks.unshift({ id: Date.now(), text: input.value, progress: 0 });
+        input.value = '';
+        renderTasks();
+    }
+
+    function updateProgress(id, val) {
+        tasks = tasks.map(t => t.id === id ? {...t, progress: parseInt(val)} : t);
+        renderTasks();
+    }
+
+    function deleteTask(id) {
+        tasks = tasks.filter(t => t.id !== id);
+        renderTasks();
+    }
+
+    // 初期起動
+    updateTimerVisuals();
+    renderTasks();
+</script>
+
+</body>
+</html>
