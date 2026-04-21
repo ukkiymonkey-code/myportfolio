@@ -12,7 +12,12 @@
         .timer-svg { width: 160px; height: 160px; transform: rotate(-90deg); }
         circle { fill: none; stroke-width: 10; stroke-linecap: round; }
         .circle-bg { stroke: rgba(255,255,255,0.1); }
-        .circle-progress { stroke: #38bdf8; stroke-dasharray: 502.6; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+        .circle-progress { 
+            stroke: #38bdf8; 
+            stroke-dasharray: 471.2; 
+            stroke-dashoffset: 0; 
+            transition: stroke-dashoffset 1s linear; 
+        }
         .timer-display { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; font-family: monospace; }
         .controls { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
         .controls button { padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer; background: rgba(255,255,255,0.2); color: white; font-weight: bold; }
@@ -51,7 +56,6 @@
 </div>
 
 <script>
-    // --- 1. 名言ランダム表示 ---
     const wisdoms = [
         "「私は失敗したことがない。ただ、1万通りの『うまく行かない方法』を見つけただけだ」トーマス・エジソン",
         "「空想は知識より重要である。知識には限界があるが、空想は世界を包み込む」アルベルト・アインシュタイン",
@@ -61,27 +65,27 @@
     ];
     document.getElementById('quote').innerText = wisdoms[Math.floor(Math.random() * wisdoms.length)];
 
-    // --- 2. タイマー ---
-    let time = 25 * 60;
+    const SET_TIME = 25 * 60;
+    let time = SET_TIME;
     let timer = null;
     const circle = document.getElementById('progressCircle');
-    const len = 2 * Math.PI * 75;
+    const len = 2 * Math.PI * 75; // 471.2
     circle.style.strokeDasharray = len;
 
     function draw() {
         const m = Math.floor(time / 60);
         const s = time % 60;
         document.getElementById('timerDisplay').innerText = `${m}:${s < 10 ? '0'+s : s}`;
-        circle.style.strokeDashoffset = len * (1 - time / (25 * 60));
+        // 時計回りに減らす計算: 残り時間に合わせて offset を増やす
+        circle.style.strokeDashoffset = len * (1 - time / SET_TIME);
     }
 
     document.getElementById('startBtn').onclick = function() {
         if (timer) { clearInterval(timer); timer = null; this.innerText = 'START'; }
         else { this.innerText = 'STOP'; timer = setInterval(() => { if (time > 0) { time--; draw(); } else { clearInterval(timer); alert('Time up!'); } }, 1000); }
     };
-    document.getElementById('resetBtn').onclick = () => { clearInterval(timer); timer = null; time = 25 * 60; draw(); document.getElementById('startBtn').innerText = 'START'; };
+    document.getElementById('resetBtn').onclick = () => { clearInterval(timer); timer = null; time = SET_TIME; draw(); document.getElementById('startBtn').innerText = 'START'; };
 
-    // --- 3. タスク管理 (ドラッグ式) ---
     let data = JSON.parse(localStorage.getItem('fstep_v9')) || [];
     function render() {
         const tArea = document.getElementById('todoList');
